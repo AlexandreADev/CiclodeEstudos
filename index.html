@@ -340,6 +340,7 @@ function defaultState(){
 function todayStr(){ return new Date().toISOString().slice(0,10); }
 function addDays(dateStr, days){ const d = new Date(dateStr+'T00:00:00'); d.setDate(d.getDate()+days); return d.toISOString().slice(0,10); }
 function fmtHM(min){ const h=Math.floor(min/60); const m=Math.round(min%60); return h+'h'+String(m).padStart(2,'0'); }
+function escapeHtml(v){ return String(v == null ? '' : v).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;'); }
 
 let state = loadState();
 if(!state.cycle || state.cycle.length===0){ state.cycle = generateCycle(state.subjects); saveState(); }
@@ -552,7 +553,7 @@ function renderPainel(){
       <div class="bar" style="background:${color};"></div>
       <div class="subj-body">
         <div class="subj-top">
-          <div class="subj-name">${s.name} ${idx===0 && id===currentId ? '<span class="tag-next">PRÓXIMA</span>' : ''}</div>
+          <div class="subj-name">${escapeHtml(s.name)} ${idx===0 && id===currentId ? '<span class="tag-next">PRÓXIMA</span>' : ''}</div>
           <div class="subj-meta"><span class="icon-btn">⏱</span> Meta ${fmtHM(s.metaMin)}min</div>
         </div>
         <div class="subj-sub"><span>${studied}min estudados</span><span>${Math.round(pct)}%</span></div>
@@ -578,14 +579,14 @@ function renderPainel(){
   document.getElementById('donutCenter').textContent = fmtHM(totalStudied)+'/'+fmtHM(totalGoal);
 
   const legend = document.getElementById('legend');
-  legend.innerHTML = state.subjects.map(s=>`<div class="legend-item"><span class="legend-dot" style="background:${subjectColor(s.id)};"></span>${s.name}</div>`).join('');
+  legend.innerHTML = state.subjects.map(s=>`<div class="legend-item"><span class="legend-dot" style="background:${subjectColor(s.id)};"></span>${escapeHtml(s.name)}</div>`).join('');
 
   const curSubj = getSubject(currentId);
   document.getElementById('timerSubjectName').textContent = curSubj ? curSubj.name : '—';
   const topicSelect = document.getElementById('sessionTopicSelect');
   const topics = curSubj ? curSubj.topics : [];
   topicSelect.innerHTML = '<option value="">— Sem tópico específico —</option>' +
-    topics.map(t=>`<option value="${t.id}">${t.name}</option>`).join('');
+    topics.map(t=>`<option value="${t.id}">${escapeHtml(t.name)}</option>`).join('');
   document.getElementById('pomodorosToday').textContent = state.pomodorosToday;
   document.getElementById('statSessions').textContent = state.log.length;
   document.getElementById('statHours').textContent = (totalStudied/60).toFixed(1)+'h';
@@ -600,7 +601,13 @@ document.getElementById('btnComplete').addEventListener('click', ()=>{
   const topicId = topicSelect.value ? Number(topicSelect.value) : null;
   const topicName = topicId ? (topicSelect.options[topicSelect.selectedIndex].textContent) : null;
   const note = noteInput.value.trim();
-  completeCurrentSubject(state.pomodoro.focusMin, topicId, topicName, note);
+  const totalFocusSec = state.pomodoro.focusMin * 60;
+  const elapsedSec = timerMode === 'focus'
+    ? Math.max(0, totalFocusSec - Math.max(0, timerSeconds))
+    : totalFocusSec;
+  const studiedMin = Math.max(1, Math.round(elapsedSec / 60));
+  completeCurrentSubject(studiedMin, topicId, topicName, note);
+  resetTimer();
   noteInput.value = '';
 });
 
@@ -631,7 +638,7 @@ function renderReviews(){
     let status='future', label='Agendada';
     if(r.dueDate < today){ status='overdue'; label='Atrasada'; tr.classList.add('overdue'); }
     else if(r.dueDate === today){ status='today'; label='Hoje'; tr.classList.add('today'); }
-    tr.innerHTML = `<td>${s.name}</td><td>${r.topicName || '—'}</td><td>${r.stageIndex+1}/${REVIEW_INTERVALS.length}</td><td>${r.dueDate}</td><td><span class="badge ${status}">${label}</span></td><td><button class="btn btn-outline" data-id="${r.id}">✓ Revisado</button></td>`;
+    tr.innerHTML = `<td>${escapeHtml(s.name)}</td><td>${escapeHtml(r.topicName || '—')}</td><td>${r.stageIndex+1}/${REVIEW_INTERVALS.length}</td><td>${escapeHtml(r.dueDate)}</td><td><span class="badge ${status}">${label}</span></td><td><button class="btn btn-outline" data-id="${r.id}">✓ Revisado</button></td>`;
     body.appendChild(tr);
   });
   body.querySelectorAll('button[data-id]').forEach(btn=>{
@@ -655,7 +662,7 @@ function renderHistory(){
   sorted.forEach(l=>{
     const s = getSubject(l.subjectId); if(!s) return;
     const tr = document.createElement('tr');
-    tr.innerHTML = `<td>${l.date}</td><td>${s.name}</td><td>${l.topicName || '—'}</td><td>${l.note || '—'}</td><td>${l.minutes}</td>`;
+    tr.innerHTML = `<td>${escapeHtml(l.date)}</td><td>${escapeHtml(s.name)}</td><td>${escapeHtml(l.topicName || '—')}</td><td>${escapeHtml(l.note || '—')}</td><td>${escapeHtml(l.minutes)}</td>`;
     body.appendChild(tr);
   });
 }
@@ -668,7 +675,7 @@ function renderConfig(){
     const row = document.createElement('div');
     row.className = 'subject-edit-row';
     row.innerHTML = `
-      <input type="text" value="${s.name}" data-field="name" data-id="${s.id}">
+      <input type="text" value="${escapeHtml(s.name)}" data-field="name" data-id="${s.id}">
       <select data-field="stars" data-id="${s.id}">${[5,4,3,2,1].map(n=>`<option value="${n}" ${s.stars===n?'selected':''}>${'⭐'.repeat(n)}</option>`).join('')}</select>
       <input type="number" data-field="meta" data-id="${s.id}" value="${(s.metaMin/60)}" min="0.5" step="0.5" title="Meta em horas">
       <button class="btn btn-red" data-remove="${s.id}" title="Remover">✕</button>
@@ -706,9 +713,9 @@ function renderTopicsEditor(){
     const topicsText = (s.topics||[]).map(t=>t.name).join('\n');
     block.innerHTML = `
       <div style="font-size:13px; font-weight:700; margin-bottom:5px; display:flex; align-items:center; gap:8px;">
-        <span class="legend-dot" style="background:${subjectColor(s.id)};"></span>${s.name}
+        <span class="legend-dot" style="background:${subjectColor(s.id)};"></span>${escapeHtml(s.name)}
       </div>
-      <textarea data-subject-id="${s.id}" rows="3" placeholder="Um tópico por linha..." style="width:100%; background:#fff; border:1px solid var(--border); border-radius:8px; padding:8px 10px; font-size:13px; font-family:inherit; resize:vertical;">${topicsText}</textarea>
+      <textarea data-subject-id="${s.id}" rows="3" placeholder="Um tópico por linha..." style="width:100%; background:#fff; border:1px solid var(--border); border-radius:8px; padding:8px 10px; font-size:13px; font-family:inherit; resize:vertical;">${escapeHtml(topicsText)}</textarea>
     `;
     wrap.appendChild(block);
   });
@@ -772,6 +779,15 @@ document.getElementById('btnSavePomodoro').addEventListener('click', ()=>{
 
 // ---------------- POMODORO ----------------
 let timerInterval = null; let timerSeconds = state.pomodoro.focusMin*60; let timerMode = 'focus'; let focusCountInCycle = 0;
+let audioCtx = null;
+function initAudio(){
+  try{
+    const AudioCtx = window.AudioContext || window.webkitAudioContext;
+    if(!AudioCtx) return;
+    if(!audioCtx) audioCtx = new AudioCtx();
+    if(audioCtx.state === 'suspended') audioCtx.resume();
+  }catch(e){}
+}
 function formatTime(sec){ const m=Math.floor(sec/60).toString().padStart(2,'0'); const s=(sec%60).toString().padStart(2,'0'); return m+':'+s; }
 function updateTimerDisplay(){
   document.getElementById('timerDisplay').textContent = formatTime(timerSeconds);
@@ -781,7 +797,23 @@ function resetTimer(){
   clearInterval(timerInterval); timerInterval=null; timerMode='focus'; timerSeconds = state.pomodoro.focusMin*60;
   updateTimerDisplay(); document.getElementById('btnStart').disabled=false; document.getElementById('btnPause').disabled=true;
 }
-function beep(){ try{ const ctx=new (window.AudioContext||window.webkitAudioContext)(); const o=ctx.createOscillator(); const g=ctx.createGain(); o.connect(g); g.connect(ctx.destination); o.frequency.value=880; g.gain.value=0.15; o.start(); setTimeout(()=>{o.stop(); ctx.close();},350); }catch(e){} }
+function beep(){
+  try{
+    if(!audioCtx) initAudio();
+    if(!audioCtx) return;
+    if(audioCtx.state === 'suspended') audioCtx.resume();
+    const now = audioCtx.currentTime;
+    const g = audioCtx.createGain();
+    g.connect(audioCtx.destination);
+    g.gain.setValueAtTime(0, now);
+    g.gain.linearRampToValueAtTime(0.45, now + 0.08);
+    g.gain.exponentialRampToValueAtTime(0.001, now + 1.2);
+
+    const o1 = audioCtx.createOscillator(); o1.type='sine'; o1.frequency.setValueAtTime(523.25, now); o1.connect(g); o1.start(now); o1.stop(now + 0.35);
+    const o2 = audioCtx.createOscillator(); o2.type='sine'; o2.frequency.setValueAtTime(659.25, now + 0.18); o2.connect(g); o2.start(now + 0.18); o2.stop(now + 0.55);
+    const o3 = audioCtx.createOscillator(); o3.type='sine'; o3.frequency.setValueAtTime(783.99, now + 0.36); o3.connect(g); o3.start(now + 0.36); o3.stop(now + 0.9);
+  }catch(e){}
+}
 function tick(){
   timerSeconds--;
   if(timerSeconds<0){
@@ -794,7 +826,7 @@ function tick(){
   }
   updateTimerDisplay();
 }
-document.getElementById('btnStart').addEventListener('click', ()=>{ if(timerInterval) return; timerInterval=setInterval(tick,1000); document.getElementById('btnStart').disabled=true; document.getElementById('btnPause').disabled=false; });
+document.getElementById('btnStart').addEventListener('click', ()=>{ if(timerInterval) return; initAudio(); timerInterval=setInterval(tick,1000); document.getElementById('btnStart').disabled=true; document.getElementById('btnPause').disabled=false; });
 document.getElementById('btnPause').addEventListener('click', ()=>{ clearInterval(timerInterval); timerInterval=null; document.getElementById('btnStart').disabled=false; document.getElementById('btnPause').disabled=true; });
 document.getElementById('btnReset').addEventListener('click', resetTimer);
 
