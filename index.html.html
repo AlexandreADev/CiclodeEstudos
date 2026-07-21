@@ -1,0 +1,817 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ciclo de Estudos — Concurso Público</title>
+<style>
+  :root{
+    --bg: #eef1f7;
+    --card: #ffffff;
+    --border: #e6e9f0;
+    --text: #1f2937;
+    --text-dim: #8a93a6;
+    --label: #4a5578;
+    --blue: #2f6fed;
+    --blue-soft: #eaf1ff;
+    --red: #e0455a;
+    --red-soft: #fdecee;
+    --green: #22b573;
+    --radius: 16px;
+    --track: #e9edf5;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0; font-family: 'Segoe UI', Roboto, Arial, sans-serif;
+    background: var(--bg); color: var(--text); min-height:100vh;
+  }
+  header{
+    padding: 20px 28px; display:flex; align-items:center; justify-content:space-between;
+    background:var(--card); border-bottom:1px solid var(--border); position:sticky; top:0; z-index:20;
+  }
+  header h1{ font-size:18px; margin:0; letter-spacing:.2px; color:var(--text);}
+  header h1 span{color:var(--blue);}
+  nav{display:flex; gap:6px;}
+  nav button{
+    background:transparent; border:1px solid var(--border); color:var(--text-dim);
+    padding:8px 16px; border-radius:999px; cursor:pointer; font-size:13px; font-weight:600;
+    transition:.15s;
+  }
+  nav button.active{ background:var(--blue); color:#fff; border-color:var(--blue);}
+  nav button:not(.active):hover{ color:var(--text); border-color:var(--blue);}
+  main{ max-width:1180px; margin:0 auto; padding:24px 20px 60px;}
+  .grid{ display:grid; grid-template-columns: 1.25fr 1fr; gap:18px; align-items:start;}
+  @media (max-width:900px){ .grid{grid-template-columns:1fr;} }
+  .card{
+    background: var(--card); border:1px solid var(--border); border-radius: var(--radius);
+    padding:18px 20px; box-shadow: 0 4px 18px rgba(30,40,70,0.05);
+  }
+  .card-header{ display:flex; align-items:center; justify-content:space-between; margin-bottom:8px;}
+  .card-title{ font-size:13px; font-weight:700; letter-spacing:.6px; color:var(--label); text-transform:uppercase;}
+  .check-label{ display:flex; align-items:center; gap:7px; font-size:13px; color:var(--label); font-weight:600; cursor:pointer; user-select:none;}
+  .check-label input{ width:16px; height:16px; accent-color:var(--blue); cursor:pointer;}
+
+  .subj-list{ max-height:560px; overflow-y:auto; }
+  .subj-row{ display:flex; gap:12px; padding:14px 4px; border-bottom:1px solid var(--border); }
+  .subj-row:last-child{ border-bottom:none; }
+  .bar{ width:5px; border-radius:4px; flex:0 0 auto; }
+  .subj-body{ flex:1; min-width:0; }
+  .subj-top{ display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap;}
+  .subj-name{ font-weight:700; font-size:15px; display:flex; align-items:center; gap:8px;}
+  .tag-next{ background:var(--red-soft); color:var(--red); font-size:10px; font-weight:800; padding:3px 8px; border-radius:6px; letter-spacing:.4px;}
+  .subj-meta{ display:flex; align-items:center; gap:14px; color:var(--label); font-size:13px; font-weight:600; white-space:nowrap;}
+  .icon-btn{ color:var(--text-dim); font-size:14px; }
+  .subj-sub{ display:flex; align-items:center; justify-content:space-between; margin-top:6px; font-size:12.5px; color:var(--text-dim);}
+  .progress-track{ height:6px; background:var(--track); border-radius:6px; margin-top:7px; overflow:hidden;}
+  .progress-fill{ height:100%; border-radius:6px; transition:width .3s; }
+
+  .wheel-wrap{ display:flex; flex-direction:column; align-items:center; padding:10px 6px 6px;}
+  .wheel-title{ font-size:13px; font-weight:700; letter-spacing:1px; color:var(--label); margin-bottom:18px;}
+  .donut{
+    width:260px; height:260px; border-radius:50%; position:relative;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .donut-hole{
+    width:64%; height:64%; background:var(--card); border-radius:50%;
+    display:flex; align-items:center; justify-content:center; flex-direction:column;
+    box-shadow: inset 0 0 0 1px var(--border);
+  }
+  .donut-hole .big{ font-size:19px; font-weight:800; color:var(--text);}
+
+  .legend{ display:flex; flex-wrap:wrap; gap:8px 14px; justify-content:center; margin-top:18px;}
+  .legend-item{ display:flex; align-items:center; gap:6px; font-size:11.5px; color:var(--label); font-weight:600;}
+  .legend-dot{ width:9px; height:9px; border-radius:50%; flex:0 0 auto;}
+
+  .timer-card{ margin-top:18px; text-align:center; }
+  .timer-label{ color:var(--text-dim); font-size:12px; text-transform:uppercase; letter-spacing:1px; margin-bottom:4px;}
+  .timer-display{ font-size:52px; font-weight:800; letter-spacing:1px; font-variant-numeric: tabular-nums; color:var(--text);}
+  .timer-controls{ display:flex; gap:10px; justify-content:center; margin-top:10px;}
+  .btn{ border:none; border-radius:10px; padding:10px 18px; font-weight:700; cursor:pointer; font-size:13.5px; transition:.15s;}
+  .btn-blue{ background:var(--blue); color:#fff;}
+  .btn-blue:hover{ filter:brightness(1.08);}
+  .btn-outline{ background:#fff; border:1px solid var(--border); color:var(--text);}
+  .btn-outline:hover{ border-color:var(--blue); color:var(--blue);}
+  .btn-red{ background:var(--red); color:#fff;}
+  .btn:disabled{ opacity:.4; cursor:not-allowed;}
+  .row{ display:flex; gap:10px; flex-wrap:wrap; align-items:center;}
+
+  table{ width:100%; border-collapse:collapse; font-size:13px;}
+  th,td{ text-align:left; padding:10px 8px; border-bottom:1px solid var(--border);}
+  th{ color:var(--text-dim); font-weight:700; text-transform:uppercase; font-size:10.5px; letter-spacing:.5px;}
+  tr.overdue td{ color:var(--red); font-weight:700;}
+  tr.today td{ color:var(--blue); font-weight:700;}
+  .badge{ padding:3px 9px; border-radius:999px; font-size:11px; font-weight:700;}
+  .badge.overdue{ background:var(--red-soft); color:var(--red);}
+  .badge.today{ background:var(--blue-soft); color:var(--blue);}
+  .badge.future{ background:#f0f2f7; color:var(--text-dim);}
+
+  .subject-edit-row{ display:grid; grid-template-columns: 1fr 120px 90px 36px; gap:8px; align-items:center; margin-bottom:8px;}
+  input[type=text], input[type=number]{
+    background:#fff; border:1px solid var(--border); color:var(--text);
+    padding:8px 10px; border-radius:8px; font-size:13px; width:100%;
+  }
+  select{ background:#fff; border:1px solid var(--border); color:var(--text); padding:8px 10px; border-radius:8px; font-size:13px;}
+  .stat-grid{ display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin-top:6px;}
+  .stat-box{ background:var(--bg); border:1px solid var(--border); border-radius:10px; padding:12px; text-align:center;}
+  .stat-box .num{ font-size:21px; font-weight:800; color:var(--blue);}
+  .stat-box .lbl{ font-size:11px; color:var(--text-dim); text-transform:uppercase; margin-top:2px;}
+  .hint{ font-size:12px; color:var(--text-dim); margin-top:10px; line-height:1.5;}
+  .section{ display:none; }
+  .section.active{ display:block; }
+  .empty{ color:var(--text-dim); font-size:13px; padding:14px 0; text-align:center;}
+  ::-webkit-scrollbar{width:8px;}
+  ::-webkit-scrollbar-thumb{background:var(--border); border-radius:8px;}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Ciclo de <span>Estudos</span></h1>
+  <nav>
+    <button class="tab-btn active" data-tab="painel">Painel</button>
+    <button class="tab-btn" data-tab="revisoes">Revisões</button>
+    <button class="tab-btn" data-tab="historico">Histórico</button>
+    <button class="tab-btn" data-tab="config">Configurações</button>
+  </nav>
+</header>
+
+<main>
+  <!-- PAINEL -->
+  <section id="painel" class="section active">
+    <div class="grid">
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">Sequência dos estudos</div>
+          <label class="check-label"><input type="checkbox" id="chkFinalizados" checked> Ver finalizados</label>
+        </div>
+        <div class="subj-list" id="subjList"></div>
+      </div>
+
+      <div>
+        <div class="card">
+          <div class="wheel-wrap">
+            <div class="wheel-title">CICLO</div>
+            <div class="donut" id="donut">
+              <div class="donut-hole"><div class="big" id="donutCenter">0h00/0h00</div></div>
+            </div>
+            <div class="legend" id="legend"></div>
+          </div>
+        </div>
+
+        <div class="card timer-card">
+          <div class="timer-label" id="timerMode">Foco</div>
+          <div class="timer-display" id="timerDisplay">50:00</div>
+          <div class="timer-controls">
+            <button class="btn btn-blue" id="btnStart">Iniciar</button>
+            <button class="btn btn-outline" id="btnPause" disabled>Pausar</button>
+            <button class="btn btn-outline" id="btnReset">Reiniciar</button>
+          </div>
+          <div class="hint">Estudando agora: <b id="timerSubjectName">—</b> · Focos hoje: <span id="pomodorosToday">0</span></div>
+          <div style="text-align:left; margin-top:14px; padding-top:14px; border-top:1px solid var(--border);">
+            <div style="font-size:12px; font-weight:700; color:var(--label); margin-bottom:6px;">O que você estudou?</div>
+            <select id="sessionTopicSelect" style="width:100%; margin-bottom:8px;"></select>
+            <input type="text" id="sessionNote" placeholder="Observação (opcional): página, questão, dúvida...">
+            <div class="row" style="justify-content:center; margin-top:10px;">
+              <button class="btn btn-outline" id="btnComplete">✓ Concluir sessão e avançar</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" style="margin-top:18px;">
+      <div class="card-title" style="margin-bottom:12px;">Estatísticas</div>
+      <div class="stat-grid">
+        <div class="stat-box"><div class="num" id="statSessions">0</div><div class="lbl">Sessões concluídas</div></div>
+        <div class="stat-box"><div class="num" id="statHours">0h</div><div class="lbl">Tempo estudado</div></div>
+        <div class="stat-box"><div class="num" id="statDue">0</div><div class="lbl">Revisões pendentes</div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- REVISOES -->
+  <section id="revisoes" class="section">
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">Revisões — curva do esquecimento</div>
+        <div class="hint" style="margin:0;">Intervalos: 1 · 3 · 7 · 15 · 30 dias</div>
+      </div>
+      <table id="reviewsTable">
+        <thead><tr><th>Disciplina</th><th>Tópico</th><th>Etapa</th><th>Vencimento</th><th>Status</th><th></th></tr></thead>
+        <tbody id="reviewsBody"></tbody>
+      </table>
+      <div class="empty" id="reviewsEmpty" style="display:none;">Nenhuma revisão agendada ainda. Conclua sessões no Painel para gerar revisões.</div>
+    </div>
+  </section>
+
+  <!-- HISTORICO -->
+  <section id="historico" class="section">
+    <div class="card">
+      <div class="card-title" style="margin-bottom:12px;">Histórico de estudos</div>
+      <table id="historyTable">
+        <thead><tr><th>Data</th><th>Disciplina</th><th>Tópico</th><th>Observação</th><th>Min.</th></tr></thead>
+        <tbody id="historyBody"></tbody>
+      </table>
+      <div class="empty" id="historyEmpty" style="display:none;">Nenhuma sessão registrada ainda.</div>
+    </div>
+  </section>
+
+  <!-- CONFIG -->
+  <section id="config" class="section">
+    <div class="grid">
+      <div class="card">
+        <div class="card-title" style="margin-bottom:12px;">Disciplinas, prioridade e meta</div>
+        <div id="subjectsList"></div>
+        <div class="row" style="margin-top:10px;">
+          <input type="text" id="newSubjectName" placeholder="Nova disciplina">
+          <select id="newSubjectStars">
+            <option value="5">⭐⭐⭐⭐⭐</option>
+            <option value="4">⭐⭐⭐⭐</option>
+            <option value="3" selected>⭐⭐⭐</option>
+            <option value="2">⭐⭐</option>
+            <option value="1">⭐</option>
+          </select>
+          <input type="number" id="newSubjectMeta" value="4" min="0.5" step="0.5" style="width:80px;" title="Meta em horas">
+          <button class="btn btn-outline" id="btnAddSubject">+ Adicionar</button>
+        </div>
+        <div class="row" style="margin-top:14px;">
+          <button class="btn btn-blue" id="btnRegenerate">Aplicar e recalcular ciclo</button>
+          <button class="btn btn-red" id="btnResetAll">Zerar tudo</button>
+        </div>
+        <div class="hint">Estrelas = peso no ciclo. Meta = horas-alvo por disciplina (usada na roda e nas barras de progresso). Depois de editar, clique em "Aplicar e recalcular ciclo".</div>
+      </div>
+
+      <div class="card">
+        <div class="card-title" style="margin-bottom:6px;">Tópicos do edital, por disciplina</div>
+        <div class="hint" style="margin-top:0;">Digite um tópico por linha. Esses tópicos aparecem no seletor ao concluir uma sessão de estudo.</div>
+        <div id="topicsEditor" style="margin-top:10px;"></div>
+        <div class="row" style="margin-top:12px;">
+          <button class="btn btn-outline" id="btnImportTopics">📥 Importar edital (.json)</button>
+          <input type="file" id="importTopicsInput" accept="application/json" style="display:none;">
+        </div>
+        <div class="hint">
+          Formato aceito: uma lista de objetos <code>{"disciplina": "Direito Penal", "topicos": ["Tópico 1", "Tópico 2", ...]}</code>. A correspondência é feita pelo nome da disciplina (precisa bater exatamente com o nome cadastrado ao lado).
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title" style="margin-bottom:12px;">Pomodoro — tempos</div>
+        <div class="subject-edit-row" style="grid-template-columns:1fr 100px;">
+          <label>Foco (minutos)</label><input type="number" id="cfgFocus" min="5" max="120">
+        </div>
+        <div class="subject-edit-row" style="grid-template-columns:1fr 100px;">
+          <label>Pausa curta (minutos)</label><input type="number" id="cfgBreak" min="1" max="60">
+        </div>
+        <div class="subject-edit-row" style="grid-template-columns:1fr 100px;">
+          <label>Pausa longa (minutos)</label><input type="number" id="cfgLongBreak" min="5" max="90">
+        </div>
+        <div class="subject-edit-row" style="grid-template-columns:1fr 100px;">
+          <label>Focos até pausa longa</label><input type="number" id="cfgSessions" min="1" max="10">
+        </div>
+        <button class="btn btn-blue" id="btnSavePomodoro">Salvar tempos</button>
+      </div>
+    </div>
+
+    <div class="card" style="margin-top:18px;">
+      <div class="card-title" style="margin-bottom:12px;">Backup e salvamento em arquivo</div>
+      <div class="hint" style="margin-top:0;">
+        Seu progresso já fica salvo automaticamente no navegador. Mas se quiser uma cópia num arquivo de verdade no seu PC (pra não correr risco de perder ao limpar o navegador, ou pra levar pra outro computador), use as opções abaixo.
+      </div>
+
+      <div style="margin-top:14px;">
+        <div style="font-size:13px; font-weight:700; color:var(--label); margin-bottom:8px;">Opção 1 — Backup manual (.json), funciona em qualquer navegador</div>
+        <div class="row">
+          <button class="btn btn-outline" id="btnExport">⬇️ Baixar backup agora</button>
+          <button class="btn btn-outline" id="btnImportTrigger">⬆️ Restaurar de um backup</button>
+          <input type="file" id="importFileInput" accept="application/json" style="display:none;">
+        </div>
+      </div>
+
+      <div style="margin-top:18px; padding-top:16px; border-top:1px solid var(--border);">
+        <div style="font-size:13px; font-weight:700; color:var(--label); margin-bottom:8px;">Opção 2 — Vincular um arquivo no seu PC (salva sozinho a cada mudança)</div>
+        <div class="hint" style="margin-top:0; margin-bottom:10px;">Disponível apenas no Chrome, Edge e navegadores baseados em Chromium. Não funciona no Firefox nem no Safari.</div>
+        <div class="row">
+          <button class="btn btn-blue" id="btnLinkFile">🔗 Vincular arquivo</button>
+          <button class="btn btn-outline" id="btnUnlinkFile" style="display:none;">Desvincular</button>
+        </div>
+        <div class="hint" id="fileStatus" style="margin-top:10px;">Nenhum arquivo vinculado.</div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<script>
+const STORAGE_KEY = 'cicloEstudosStateV2';
+const REVIEW_INTERVALS = [1,3,7,15,30];
+const PALETTE = ['#e0455a','#f0783c','#f2ad3a','#c7d13a','#4fc94a','#22c98f','#22c9c0','#2fa9e0','#3f74ec','#6b4fec','#a742e0','#e044b0'];
+
+const DEFAULT_SUBJECTS = [
+  {id:1, name:"Direito Penal", stars:5, metaMin:240},
+  {id:2, name:"Processo Penal", stars:5, metaMin:240},
+  {id:3, name:"Direito Constitucional", stars:5, metaMin:240},
+  {id:4, name:"Direito Administrativo", stars:5, metaMin:240},
+  {id:5, name:"Legislação Penal Especial", stars:5, metaMin:240},
+  {id:6, name:"Direitos Humanos", stars:4, metaMin:240},
+  {id:7, name:"Criminologia", stars:4, metaMin:240},
+  {id:8, name:"Medicina Legal", stars:4, metaMin:240},
+  {id:9, name:"Direito Civil", stars:4, metaMin:240},
+  {id:10, name:"Processo Civil", stars:4, metaMin:240},
+  {id:11, name:"Informática", stars:3, metaMin:240},
+];
+
+function defaultState(){
+  const subjects = JSON.parse(JSON.stringify(DEFAULT_SUBJECTS));
+  subjects.forEach(s=>{ s.topics = []; });
+  return {
+    subjects: subjects,
+    nextSubjectId: 12,
+    nextTopicId: 1,
+    cycle: [],
+    cycleIndex: 0,
+    cycleLaps: 0,
+    pomodoro: {focusMin:50, breakMin:10, longBreakMin:30, sessionsBeforeLongBreak:4},
+    log: [],
+    reviews: [],
+    nextReviewId: 1,
+    pomodorosToday: 0,
+    pomodorosTodayDate: todayStr(),
+  };
+}
+function todayStr(){ return new Date().toISOString().slice(0,10); }
+function addDays(dateStr, days){ const d = new Date(dateStr+'T00:00:00'); d.setDate(d.getDate()+days); return d.toISOString().slice(0,10); }
+function fmtHM(min){ const h=Math.floor(min/60); const m=Math.round(min%60); return h+'h'+String(m).padStart(2,'0'); }
+
+let state = loadState();
+if(!state.cycle || state.cycle.length===0){ state.cycle = generateCycle(state.subjects); saveState(); }
+state.subjects.forEach(s=>{ if(s.metaMin==null) s.metaMin = 240; if(!s.topics) s.topics = []; });
+if(state.nextTopicId==null) state.nextTopicId = 1;
+
+function loadState(){
+  try{
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if(!raw) return defaultState();
+    const parsed = JSON.parse(raw);
+    if(parsed.pomodorosTodayDate !== todayStr()){ parsed.pomodorosToday = 0; parsed.pomodorosTodayDate = todayStr(); }
+    return parsed;
+  }catch(e){ return defaultState(); }
+}
+let fileHandle = null;
+let fileWriteQueued = false;
+
+function saveState(){
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+  writeToLinkedFile();
+}
+
+// ---------- IndexedDB (only used to remember the linked file handle) ----------
+function idbOpen(){
+  return new Promise((resolve,reject)=>{
+    const req = indexedDB.open('cicloEstudosDB', 1);
+    req.onupgradeneeded = ()=>{ req.result.createObjectStore('handles'); };
+    req.onsuccess = ()=> resolve(req.result);
+    req.onerror = ()=> reject(req.error);
+  });
+}
+async function idbSetHandle(handle){
+  const db = await idbOpen();
+  return new Promise((resolve,reject)=>{
+    const tx = db.transaction('handles','readwrite');
+    tx.objectStore('handles').put(handle, 'dataFile');
+    tx.oncomplete = ()=>resolve();
+    tx.onerror = ()=>reject(tx.error);
+  });
+}
+async function idbGetHandle(){
+  const db = await idbOpen();
+  return new Promise((resolve,reject)=>{
+    const tx = db.transaction('handles','readonly');
+    const req = tx.objectStore('handles').get('dataFile');
+    req.onsuccess = ()=> resolve(req.result || null);
+    req.onerror = ()=> reject(req.error);
+  });
+}
+async function idbClearHandle(){
+  const db = await idbOpen();
+  return new Promise((resolve,reject)=>{
+    const tx = db.transaction('handles','readwrite');
+    tx.objectStore('handles').delete('dataFile');
+    tx.oncomplete = ()=>resolve();
+    tx.onerror = ()=>reject(tx.error);
+  });
+}
+
+function updateFileStatusUI(name){
+  const el = document.getElementById('fileStatus');
+  const linkBtn = document.getElementById('btnLinkFile');
+  const unlinkBtn = document.getElementById('btnUnlinkFile');
+  if(name){
+    el.textContent = '✅ Salvando automaticamente em: ' + name;
+    linkBtn.style.display='none'; unlinkBtn.style.display='inline-block';
+  } else {
+    el.textContent = 'Nenhum arquivo vinculado.';
+    linkBtn.style.display='inline-block'; unlinkBtn.style.display='none';
+  }
+}
+
+async function writeToLinkedFile(){
+  if(!fileHandle) return;
+  try{
+    const writable = await fileHandle.createWritable();
+    await writable.write(JSON.stringify(state, null, 2));
+    await writable.close();
+  }catch(e){ /* permission may have been revoked; ignore silently */ }
+}
+
+async function connectFile(){
+  if(!window.showSaveFilePicker){
+    alert('Seu navegador não suporta esse recurso. Use o Chrome ou o Edge, ou use o "Baixar backup" manual.');
+    return;
+  }
+  try{
+    const handle = await window.showSaveFilePicker({
+      suggestedName: 'ciclo_estudos_dados.json',
+      types: [{ description:'JSON', accept: {'application/json': ['.json']} }]
+    });
+    fileHandle = handle;
+    await idbSetHandle(handle);
+    await writeToLinkedFile();
+    updateFileStatusUI(handle.name);
+  }catch(e){ /* user cancelled */ }
+}
+async function disconnectFile(){
+  fileHandle = null;
+  await idbClearHandle();
+  updateFileStatusUI(null);
+}
+async function tryReconnectFile(){
+  if(!window.showSaveFilePicker) return;
+  try{
+    const handle = await idbGetHandle();
+    if(!handle) return;
+    const perm = await handle.queryPermission({mode:'readwrite'});
+    if(perm === 'granted'){
+      fileHandle = handle;
+      updateFileStatusUI(handle.name);
+    } else {
+      // Needs a user gesture to re-request; show as "vinculado, clique pra reconectar"
+      document.getElementById('fileStatus').textContent = '⚠️ Arquivo "'+handle.name+'" vinculado antes — clique em "Vincular arquivo" para reconectar a permissão.';
+    }
+  }catch(e){}
+}
+
+function exportBackup(){
+  const blob = new Blob([JSON.stringify(state, null, 2)], {type:'application/json'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  const stamp = todayStr();
+  a.href = url; a.download = 'ciclo_estudos_backup_'+stamp+'.json';
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+function importBackup(file){
+  const reader = new FileReader();
+  reader.onload = ()=>{
+    try{
+      const parsed = JSON.parse(reader.result);
+      if(!parsed.subjects || !parsed.cycle){ alert('Arquivo inválido.'); return; }
+      state = parsed;
+      if(state.pomodorosTodayDate !== todayStr()){ state.pomodorosToday = 0; state.pomodorosTodayDate = todayStr(); }
+      saveState();
+      renderPainel(); renderConfig(); renderReviews();
+      alert('Backup restaurado com sucesso!');
+    }catch(e){ alert('Não foi possível ler esse arquivo.'); }
+  };
+  reader.readAsText(file);
+}
+
+function generateCycle(subjects){
+  if(subjects.length===0) return [];
+  const totalWeight = subjects.reduce((s,x)=>s+x.stars,0);
+  const current = subjects.map(()=>0);
+  const cycle = [];
+  for(let i=0;i<totalWeight;i++){
+    for(let j=0;j<subjects.length;j++){ current[j]+=subjects[j].stars; }
+    let maxIdx = 0;
+    for(let j=1;j<subjects.length;j++){ if(current[j]>current[maxIdx]) maxIdx=j; }
+    cycle.push(subjects[maxIdx].id);
+    current[maxIdx]-=totalWeight;
+  }
+  return cycle;
+}
+function getSubject(id){ return state.subjects.find(s=>s.id===id); }
+function subjectColor(id){
+  const idx = state.subjects.findIndex(s=>s.id===id);
+  return PALETTE[idx % PALETTE.length];
+}
+function studiedMinutes(subjectId){
+  return state.log.filter(l=>l.subjectId===subjectId).reduce((s,l)=>s+l.minutes,0);
+}
+
+// ---------------- TABS ----------------
+document.querySelectorAll('.tab-btn').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+    document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById(btn.dataset.tab).classList.add('active');
+    if(btn.dataset.tab==='revisoes') renderReviews();
+    if(btn.dataset.tab==='historico') renderHistory();
+    if(btn.dataset.tab==='config') renderConfig();
+  });
+});
+
+// ---------------- PAINEL ----------------
+function orderedUniqueSubjectIds(){
+  const total = state.cycle.length;
+  const seen = new Set(); const order = [];
+  for(let i=0;i<total;i++){
+    const id = state.cycle[(state.cycleIndex+i)%total];
+    if(!seen.has(id)){ seen.add(id); order.push(id); }
+  }
+  return order;
+}
+
+function renderPainel(){
+  const list = document.getElementById('subjList');
+  list.innerHTML = '';
+  const order = orderedUniqueSubjectIds();
+  const showFinalizados = document.getElementById('chkFinalizados').checked;
+  const currentId = state.cycle[state.cycleIndex];
+
+  order.forEach((id, idx)=>{
+    const s = getSubject(id);
+    if(!s) return;
+    const studied = studiedMinutes(id);
+    const pct = s.metaMin>0 ? Math.min(100, (studied/s.metaMin)*100) : 0;
+    const finalized = studied >= s.metaMin && s.metaMin>0;
+    if(finalized && !showFinalizados) return;
+    const color = subjectColor(id);
+    const row = document.createElement('div');
+    row.className = 'subj-row';
+    row.innerHTML = `
+      <div class="bar" style="background:${color};"></div>
+      <div class="subj-body">
+        <div class="subj-top">
+          <div class="subj-name">${s.name} ${idx===0 && id===currentId ? '<span class="tag-next">PRÓXIMA</span>' : ''}</div>
+          <div class="subj-meta"><span class="icon-btn">⏱</span> Meta ${fmtHM(s.metaMin)}min</div>
+        </div>
+        <div class="subj-sub"><span>${studied}min estudados</span><span>${Math.round(pct)}%</span></div>
+        <div class="progress-track"><div class="progress-fill" style="width:${pct}%; background:${color};"></div></div>
+      </div>
+    `;
+    list.appendChild(row);
+  });
+  if(list.innerHTML===''){ list.innerHTML = '<div class="empty">Nenhuma disciplina para exibir.</div>'; }
+
+  // donut
+  const totalWeight = state.subjects.reduce((s,x)=>s+x.stars,0);
+  let acc = 0; const stops = [];
+  state.subjects.forEach(s=>{
+    const frac = totalWeight>0 ? s.stars/totalWeight : 0;
+    const start = acc*100; acc += frac; const end = acc*100;
+    stops.push(`${subjectColor(s.id)} ${start}% ${end}%`);
+  });
+  document.getElementById('donut').style.background = stops.length ? `conic-gradient(${stops.join(',')})` : '#eee';
+
+  const totalStudied = state.log.reduce((s,l)=>s+l.minutes,0);
+  const totalGoal = state.subjects.reduce((s,x)=>s+x.metaMin,0);
+  document.getElementById('donutCenter').textContent = fmtHM(totalStudied)+'/'+fmtHM(totalGoal);
+
+  const legend = document.getElementById('legend');
+  legend.innerHTML = state.subjects.map(s=>`<div class="legend-item"><span class="legend-dot" style="background:${subjectColor(s.id)};"></span>${s.name}</div>`).join('');
+
+  const curSubj = getSubject(currentId);
+  document.getElementById('timerSubjectName').textContent = curSubj ? curSubj.name : '—';
+  const topicSelect = document.getElementById('sessionTopicSelect');
+  const topics = curSubj ? curSubj.topics : [];
+  topicSelect.innerHTML = '<option value="">— Sem tópico específico —</option>' +
+    topics.map(t=>`<option value="${t.id}">${t.name}</option>`).join('');
+  document.getElementById('pomodorosToday').textContent = state.pomodorosToday;
+  document.getElementById('statSessions').textContent = state.log.length;
+  document.getElementById('statHours').textContent = (totalStudied/60).toFixed(1)+'h';
+  const due = state.reviews.filter(r=>r.dueDate<=todayStr()).length;
+  document.getElementById('statDue').textContent = due;
+}
+document.getElementById('chkFinalizados').addEventListener('change', renderPainel);
+
+document.getElementById('btnComplete').addEventListener('click', ()=>{
+  const topicSelect = document.getElementById('sessionTopicSelect');
+  const noteInput = document.getElementById('sessionNote');
+  const topicId = topicSelect.value ? Number(topicSelect.value) : null;
+  const topicName = topicId ? (topicSelect.options[topicSelect.selectedIndex].textContent) : null;
+  const note = noteInput.value.trim();
+  completeCurrentSubject(state.pomodoro.focusMin, topicId, topicName, note);
+  noteInput.value = '';
+});
+
+function completeCurrentSubject(minutes, topicId, topicName, note){
+  const currentId = state.cycle[state.cycleIndex];
+  if(currentId==null) return;
+  state.log.push({subjectId:currentId, date: todayStr(), minutes: minutes, topicId: topicId||null, topicName: topicName||null, note: note||''});
+  state.reviews.push({ id: state.nextReviewId++, subjectId: currentId, topicId: topicId||null, topicName: topicName||null, stageIndex: 0, dueDate: addDays(todayStr(), REVIEW_INTERVALS[0]) });
+  advanceCycle();
+  renderPainel();
+  saveState();
+}
+function advanceCycle(){
+  state.cycleIndex++;
+  if(state.cycleIndex >= state.cycle.length){ state.cycleIndex = 0; state.cycleLaps++; }
+}
+
+// ---------------- REVISOES ----------------
+function renderReviews(){
+  const body = document.getElementById('reviewsBody');
+  body.innerHTML = '';
+  const sorted = [...state.reviews].sort((a,b)=> a.dueDate.localeCompare(b.dueDate));
+  document.getElementById('reviewsEmpty').style.display = sorted.length? 'none':'block';
+  const today = todayStr();
+  sorted.forEach(r=>{
+    const s = getSubject(r.subjectId); if(!s) return;
+    const tr = document.createElement('tr');
+    let status='future', label='Agendada';
+    if(r.dueDate < today){ status='overdue'; label='Atrasada'; tr.classList.add('overdue'); }
+    else if(r.dueDate === today){ status='today'; label='Hoje'; tr.classList.add('today'); }
+    tr.innerHTML = `<td>${s.name}</td><td>${r.topicName || '—'}</td><td>${r.stageIndex+1}/${REVIEW_INTERVALS.length}</td><td>${r.dueDate}</td><td><span class="badge ${status}">${label}</span></td><td><button class="btn btn-outline" data-id="${r.id}">✓ Revisado</button></td>`;
+    body.appendChild(tr);
+  });
+  body.querySelectorAll('button[data-id]').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      const id = Number(btn.dataset.id);
+      const review = state.reviews.find(r=>r.id===id); if(!review) return;
+      review.stageIndex++;
+      if(review.stageIndex >= REVIEW_INTERVALS.length){ state.reviews = state.reviews.filter(r=>r.id!==id); }
+      else { review.dueDate = addDays(todayStr(), REVIEW_INTERVALS[review.stageIndex]); }
+      saveState(); renderReviews(); renderPainel();
+    });
+  });
+}
+
+// ---------------- HISTORICO ----------------
+function renderHistory(){
+  const body = document.getElementById('historyBody');
+  body.innerHTML = '';
+  const sorted = [...state.log].slice().reverse();
+  document.getElementById('historyEmpty').style.display = sorted.length? 'none':'block';
+  sorted.forEach(l=>{
+    const s = getSubject(l.subjectId); if(!s) return;
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td>${l.date}</td><td>${s.name}</td><td>${l.topicName || '—'}</td><td>${l.note || '—'}</td><td>${l.minutes}</td>`;
+    body.appendChild(tr);
+  });
+}
+
+// ---------------- CONFIG ----------------
+function renderConfig(){
+  const list = document.getElementById('subjectsList');
+  list.innerHTML = '';
+  state.subjects.forEach(s=>{
+    const row = document.createElement('div');
+    row.className = 'subject-edit-row';
+    row.innerHTML = `
+      <input type="text" value="${s.name}" data-field="name" data-id="${s.id}">
+      <select data-field="stars" data-id="${s.id}">${[5,4,3,2,1].map(n=>`<option value="${n}" ${s.stars===n?'selected':''}>${'⭐'.repeat(n)}</option>`).join('')}</select>
+      <input type="number" data-field="meta" data-id="${s.id}" value="${(s.metaMin/60)}" min="0.5" step="0.5" title="Meta em horas">
+      <button class="btn btn-red" data-remove="${s.id}" title="Remover">✕</button>
+    `;
+    list.appendChild(row);
+  });
+  list.querySelectorAll('input[data-field="name"]').forEach(inp=>inp.addEventListener('input', ()=>{ const s=state.subjects.find(x=>x.id===Number(inp.dataset.id)); if(s) s.name=inp.value; }));
+  list.querySelectorAll('select[data-field="stars"]').forEach(sel=>sel.addEventListener('change', ()=>{ const s=state.subjects.find(x=>x.id===Number(sel.dataset.id)); if(s) s.stars=Number(sel.value); }));
+  list.querySelectorAll('input[data-field="meta"]').forEach(inp=>inp.addEventListener('input', ()=>{ const s=state.subjects.find(x=>x.id===Number(inp.dataset.id)); if(s) s.metaMin=Number(inp.value)*60; }));
+  list.querySelectorAll('button[data-remove]').forEach(btn=>btn.addEventListener('click', ()=>{ state.subjects = state.subjects.filter(s=>s.id!==Number(btn.dataset.remove)); renderConfig(); }));
+
+  document.getElementById('cfgFocus').value = state.pomodoro.focusMin;
+  document.getElementById('cfgBreak').value = state.pomodoro.breakMin;
+  document.getElementById('cfgLongBreak').value = state.pomodoro.longBreakMin;
+  document.getElementById('cfgSessions').value = state.pomodoro.sessionsBeforeLongBreak;
+
+  renderTopicsEditor();
+}
+document.getElementById('btnAddSubject').addEventListener('click', ()=>{
+  const nameInput = document.getElementById('newSubjectName');
+  const name = nameInput.value.trim(); if(!name) return;
+  const stars = Number(document.getElementById('newSubjectStars').value);
+  const meta = Number(document.getElementById('newSubjectMeta').value)*60;
+  state.subjects.push({id: state.nextSubjectId++, name, stars, metaMin: meta, topics: []});
+  nameInput.value=''; renderConfig();
+});
+
+// ---------------- TOPICS EDITOR ----------------
+function renderTopicsEditor(){
+  const wrap = document.getElementById('topicsEditor');
+  wrap.innerHTML = '';
+  state.subjects.forEach(s=>{
+    const block = document.createElement('div');
+    block.style.marginBottom = '14px';
+    const topicsText = (s.topics||[]).map(t=>t.name).join('\n');
+    block.innerHTML = `
+      <div style="font-size:13px; font-weight:700; margin-bottom:5px; display:flex; align-items:center; gap:8px;">
+        <span class="legend-dot" style="background:${subjectColor(s.id)};"></span>${s.name}
+      </div>
+      <textarea data-subject-id="${s.id}" rows="3" placeholder="Um tópico por linha..." style="width:100%; background:#fff; border:1px solid var(--border); border-radius:8px; padding:8px 10px; font-size:13px; font-family:inherit; resize:vertical;">${topicsText}</textarea>
+    `;
+    wrap.appendChild(block);
+  });
+  wrap.querySelectorAll('textarea[data-subject-id]').forEach(ta=>{
+    ta.addEventListener('change', ()=>{
+      const s = state.subjects.find(x=>x.id===Number(ta.dataset.subjectId));
+      if(!s) return;
+      const lines = ta.value.split('\n').map(l=>l.trim()).filter(Boolean);
+      const existingByName = {}; (s.topics||[]).forEach(t=>{ existingByName[t.name]=t; });
+      s.topics = lines.map(line=> existingByName[line] || {id: state.nextTopicId++, name: line});
+      saveState();
+      renderPainel();
+    });
+  });
+}
+
+document.getElementById('btnImportTopics').addEventListener('click', ()=> document.getElementById('importTopicsInput').click());
+document.getElementById('importTopicsInput').addEventListener('change', (e)=>{
+  const file = e.target.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = ()=>{
+    try{
+      const data = JSON.parse(reader.result);
+      if(!Array.isArray(data)) throw new Error('formato inválido');
+      let matched = 0, unmatched = [];
+      data.forEach(item=>{
+        const s = state.subjects.find(x=> x.name.trim().toLowerCase() === (item.disciplina||'').trim().toLowerCase());
+        if(!s){ unmatched.push(item.disciplina); return; }
+        const names = Array.isArray(item.topicos) ? item.topicos : [];
+        const existingByName = {}; (s.topics||[]).forEach(t=>{ existingByName[t.name]=t; });
+        s.topics = names.map(n=> existingByName[n] || {id: state.nextTopicId++, name: n});
+        matched++;
+      });
+      saveState(); renderConfig(); renderPainel();
+      let msg = `Importado! ${matched} disciplina(s) atualizadas.`;
+      if(unmatched.length) msg += `\n\nNão encontradas (nome não bate com nenhuma disciplina cadastrada): ${unmatched.join(', ')}`;
+      alert(msg);
+    }catch(err){
+      alert('Não foi possível ler esse arquivo. Verifique o formato esperado.');
+    }
+  };
+  reader.readAsText(file);
+  e.target.value = '';
+});
+document.getElementById('btnRegenerate').addEventListener('click', ()=>{
+  state.cycle = generateCycle(state.subjects); state.cycleIndex = 0; saveState(); renderPainel(); alert('Ciclo recalculado com sucesso!');
+});
+document.getElementById('btnResetAll').addEventListener('click', ()=>{
+  if(!confirm('Isso vai apagar TODO o histórico, revisões e configurações. Tem certeza?')) return;
+  state = defaultState(); state.cycle = generateCycle(state.subjects); saveState();
+  renderPainel(); renderConfig(); renderReviews();
+});
+document.getElementById('btnSavePomodoro').addEventListener('click', ()=>{
+  state.pomodoro.focusMin = Number(document.getElementById('cfgFocus').value) || 50;
+  state.pomodoro.breakMin = Number(document.getElementById('cfgBreak').value) || 10;
+  state.pomodoro.longBreakMin = Number(document.getElementById('cfgLongBreak').value) || 30;
+  state.pomodoro.sessionsBeforeLongBreak = Number(document.getElementById('cfgSessions').value) || 4;
+  saveState(); resetTimer(); alert('Tempos salvos!');
+});
+
+// ---------------- POMODORO ----------------
+let timerInterval = null; let timerSeconds = state.pomodoro.focusMin*60; let timerMode = 'focus'; let focusCountInCycle = 0;
+function formatTime(sec){ const m=Math.floor(sec/60).toString().padStart(2,'0'); const s=(sec%60).toString().padStart(2,'0'); return m+':'+s; }
+function updateTimerDisplay(){
+  document.getElementById('timerDisplay').textContent = formatTime(timerSeconds);
+  document.getElementById('timerMode').textContent = timerMode==='focus' ? 'Foco' : (timerMode==='longbreak' ? 'Pausa longa' : 'Pausa');
+}
+function resetTimer(){
+  clearInterval(timerInterval); timerInterval=null; timerMode='focus'; timerSeconds = state.pomodoro.focusMin*60;
+  updateTimerDisplay(); document.getElementById('btnStart').disabled=false; document.getElementById('btnPause').disabled=true;
+}
+function beep(){ try{ const ctx=new (window.AudioContext||window.webkitAudioContext)(); const o=ctx.createOscillator(); const g=ctx.createGain(); o.connect(g); g.connect(ctx.destination); o.frequency.value=880; g.gain.value=0.15; o.start(); setTimeout(()=>{o.stop(); ctx.close();},350); }catch(e){} }
+function tick(){
+  timerSeconds--;
+  if(timerSeconds<0){
+    beep();
+    if(timerMode==='focus'){
+      focusCountInCycle++; state.pomodorosToday++; state.pomodorosTodayDate = todayStr(); saveState(); renderPainel();
+      if(focusCountInCycle % state.pomodoro.sessionsBeforeLongBreak === 0){ timerMode='longbreak'; timerSeconds = state.pomodoro.longBreakMin*60; }
+      else { timerMode='break'; timerSeconds = state.pomodoro.breakMin*60; }
+    } else { timerMode='focus'; timerSeconds = state.pomodoro.focusMin*60; }
+  }
+  updateTimerDisplay();
+}
+document.getElementById('btnStart').addEventListener('click', ()=>{ if(timerInterval) return; timerInterval=setInterval(tick,1000); document.getElementById('btnStart').disabled=true; document.getElementById('btnPause').disabled=false; });
+document.getElementById('btnPause').addEventListener('click', ()=>{ clearInterval(timerInterval); timerInterval=null; document.getElementById('btnStart').disabled=false; document.getElementById('btnPause').disabled=true; });
+document.getElementById('btnReset').addEventListener('click', resetTimer);
+
+// ---------------- BACKUP UI ----------------
+document.getElementById('btnExport').addEventListener('click', exportBackup);
+document.getElementById('btnImportTrigger').addEventListener('click', ()=> document.getElementById('importFileInput').click());
+document.getElementById('importFileInput').addEventListener('change', (e)=>{
+  const file = e.target.files[0];
+  if(file) importBackup(file);
+  e.target.value = '';
+});
+document.getElementById('btnLinkFile').addEventListener('click', connectFile);
+document.getElementById('btnUnlinkFile').addEventListener('click', disconnectFile);
+
+// ---------------- INIT ----------------
+resetTimer(); renderPainel(); renderConfig(); renderReviews();
+tryReconnectFile();
+</script>
+</body>
+</html>
